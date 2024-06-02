@@ -93,7 +93,7 @@ end
 ---@param points ScanDataTable
 function miningLib:main(points)
     local movedfromStart = { x = 0, y = 0, z = 0 }
-    tC.canBeakblocks = true
+    tC.canBreakBlocks = true
     miningSettings = { miningDepth = -50, miningHight = 3, miningDiameter = 9, scanRadius = 4 };
     miningSettings = sM.setget('MiningSettings', nil, miningSettings);
 
