@@ -31,6 +31,7 @@ local postionmappingTable = {
 }
 
 miningLib.permanentFacingPostition = ""
+miningLib.hasChuncky = false
 
 -- ToDo: Add Points.
 -- TODO: Save original Point to return to
@@ -76,9 +77,21 @@ end
 function miningLib:mineArea()
     ---@type ScanDataTable | nil
     local ores
-    pcall(function()
-        ores = scanner.find(miningSettings.scanRadius)
-    end)
+    if self.hasChuncky then
+        local slot = tC:findItemInInventory("advancedperipherals:geo_scanner")
+        assert(slot ~= nil, "No Scanner found")
+        turtle.select(slot)
+        turtle.equipRight()
+    end
+    print("Scanning")
+    ores = scanner.find(miningSettings.scanRadius)
+    print("Mining")
+    if self.hasChuncky then
+        local slot = tC:findItemInInventory("minecraft:diamond_pickaxe")
+        assert(slot ~= nil, "pickaxe not found")
+        turtle.select(slot)
+        turtle.equipRight()
+    end
     if ores ~= nil then
         print("Found scanner")
         mineWithScannData(ores)
@@ -92,6 +105,23 @@ end
 --- in the end, it returns to the Startingposition
 ---@param points ScanDataTable
 function miningLib:main(points)
+    assert(nil ~= tC:findItemInInventory("advancedperipherals:geo_scanner"), "No Scanner found")
+    local slot = tC:findItemInInventory("advancedperipherals:chunk_controller")
+    if slot then
+        turtle.select(slot)
+        turtle.equipLeft()
+        miningLib.hasChuncky = true
+    else
+        print("Not a Chunky turtle then")
+        local slot = tC:findItemInInventory("advancedperipherals:geo_scanner")
+        assert(slot ~= nil, "No Scanner found")
+        turtle.select(slot)
+        turtle.equipLeft()
+    end
+    slot = tC:findItemInInventory("minecraft:diamond_pickaxe")
+    assert(slot ~= nil, "pickaxe not found")
+    turtle.select(slot)
+    turtle.equipRight()
     local movedfromStart = { x = 0, y = 0, z = 0 }
     tC.canBreakBlocks = true
     miningSettings = { miningDepth = -50, miningHight = 3, miningDiameter = 9, scanRadius = 4 };
