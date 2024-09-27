@@ -3,9 +3,8 @@
 -- - MiningSettings
 miningLib = {}
 
-local pretty = require "cc.pretty"
 ---@class scm
-local scm = require("./scm")
+local scm = require("scm")
 ---@class Scanner
 local scanner = scm:load("scanner")
 ---@class turtleController
@@ -30,11 +29,11 @@ local postionmappingTable = {
     ["-Z"] = 3,
 }
 
-miningLib.permanentFacingPostition = ""
+miningLib.scanStartFacingTo = nil
 miningLib.hasChuncky = false
 
 -- ToDo: Add Points.
--- TODO: Save original Point to return to
+-- TODO: Save original Point to rdeturn to
 
 -- Doing: Mining the Points
 
@@ -42,9 +41,8 @@ miningLib.hasChuncky = false
 ---@param data ScanDataTable
 ---@return ScanDataTable
 local function modifyForFacingPosition(data)
-    if miningLib.permanentFacingPostition ~= "" then
-        return scanner.correctToFacing(data, postionmappingTable[miningLib.permanentFacingPostition])
-    end
+    assert(miningLib.scanStartFacingTo ~= nil, "Missing facing direction, cannot convert data")
+    return scanner.correctToFacing(data, postionmappingTable[miningLib.scanStartFacingTo])
 end
 
 ---uses the Data from the Scanner to mine all blocks provided in the Parameter
@@ -52,6 +50,9 @@ end
 local function mineWithScannData(data)
     data = scanner.sortFilteredScan(data)
     data = modifyForFacingPosition(data)
+    if data == nil then
+        return
+    end
     local path = scanner.createPath(data)
     if #path < 2 then
         return
@@ -83,9 +84,7 @@ function miningLib:mineArea()
         turtle.select(slot)
         turtle.equipRight()
     end
-    print("Scanning")
     ores = scanner.find(miningSettings.scanRadius)
-    print("Mining")
     if self.hasChuncky then
         local slot = tC:findItemInInventory("minecraft:diamond_pickaxe")
         assert(slot ~= nil, "pickaxe not found")
@@ -93,11 +92,10 @@ function miningLib:mineArea()
         turtle.equipRight()
     end
     if ores ~= nil then
-        print("Found scanner")
         mineWithScannData(ores)
         return
     end
-    print('TODO No Scanner')
+    error("No Scanner -> not implemented")
 end
 
 --- Runs though all points in the ScanDataTable.
@@ -112,7 +110,6 @@ function miningLib:main(points)
         turtle.equipLeft()
         miningLib.hasChuncky = true
     else
-        print("Not a Chunky turtle then")
         local slot = tC:findItemInInventory("advancedperipherals:geo_scanner")
         assert(slot ~= nil, "No Scanner found")
         turtle.select(slot)
@@ -126,7 +123,7 @@ function miningLib:main(points)
     tC.canBreakBlocks = true
     miningSettings = { miningDepth = -50, miningHight = 3, miningDiameter = 9, scanRadius = 4 };
     miningSettings = sM.setget('MiningSettings', nil, miningSettings);
-
+    
     for _, w in ipairs(points) do
         movedfromStart.x = movedfromStart.x + w.x
         movedfromStart.y = movedfromStart.y + w.y
@@ -134,7 +131,7 @@ function miningLib:main(points)
         self:goToPoint(w)
         self:mineArea()
     end
-
+    
     local path = scanner.createPath({ movedfromStart })
     if #path > 2 then
         tC:compactMove(path[2])
