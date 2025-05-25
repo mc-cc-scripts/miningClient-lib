@@ -4,7 +4,7 @@
 miningLib = {}
 
 ---@class scm
-local scm = require("scm")
+local scm = require("./scm")
 ---@class Scanner
 local scanner = scm:load("scanner")
 ---@class turtleController
