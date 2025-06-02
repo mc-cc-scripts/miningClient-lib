@@ -9,8 +9,6 @@ local scm = require("./scm")
 local scanner = scm:load("scanner")
 ---@class turtleController
 local tC = scm:load("turtleController")
----@class SettingManager
-local sM = scm:load("settingsManager")
 ---@class HelperFunctions
 local helper = scm:load("helperFunctions")
 
@@ -122,7 +120,7 @@ function miningLib:main(points)
     local movedfromStart = { x = 0, y = 0, z = 0 }
     tC.canBreakBlocks = true
     miningSettings = { miningDepth = -50, miningHight = 3, miningDiameter = 9, scanRadius = 4 };
-    miningSettings = sM.setget('MiningSettings', nil, miningSettings);
+    miningSettings = settings.get('MiningSettings',miningSettings);
     
     for _, w in ipairs(points) do
         movedfromStart.x = movedfromStart.x + w.x
