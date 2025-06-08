@@ -3,14 +3,16 @@
 -- - MiningSettings
 miningLib = {}
 
----@class scm
+---@type scm
 local scm = require("./scm")
----@class Scanner
+---@type Scanner
 local scanner = scm:load("scanner")
----@class turtleController
+---@type turtleController
 local tC = scm:load("turtleController")
----@class HelperFunctions
+---@type HelperFunctions
 local helper = scm:load("helperFunctions")
+---@type TurtleResourceManager
+local tResourceManager = scm:load("turtleResourceManager")
 
 -- DEFINITIONS
 ---@class MiningSettings
@@ -60,6 +62,13 @@ local function mineWithScannData(data)
     end
 end
 
+local function filterFunc(item)
+    local keepItem = false
+    keepItem = string.find(item.name, "coal") ~= nil or keepItem
+    keepItem = string.find(item.name, "geo_scanner") ~= nil or keepItem
+    keepItem = string.find(item.name, "pickaxe") ~= nil or keepItem
+    return keepItem
+end
 
 --- turtle goes to the provided point
 ---@param point ScanData
@@ -73,7 +82,8 @@ end
 
 --- Checks if the Scanner is attached. Get all the scanned
 ---  WIP: Not finished: if no scanner is Attached -> stripmines
-function miningLib:mineArea()
+---@param manageSpace boolean If the turtleResourceManager is setup correctly and allows for inventoryManagement
+function miningLib:mineArea(manageSpace)
     ---@type ScanDataTable | nil
     local ores
     if self.hasChuncky then
@@ -89,6 +99,11 @@ function miningLib:mineArea()
         turtle.select(slot)
         turtle.equipRight()
     end
+    if manageSpace and tResourceManager:getFreeSlots() < 5 then
+        if tResourceManager:manageSpace(12, filterFunc) == 3 then
+            error("Errorhandling not finished, cound not pickup Chest!")
+        end
+    end
     if ores ~= nil then
         mineWithScannData(ores)
         return
@@ -103,6 +118,7 @@ end
 function miningLib:main(points)
     assert(nil ~= tC:findItemInInventory("advancedperipherals:geo_scanner"), "No Scanner found")
     local slot = tC:findItemInInventory("advancedperipherals:chunk_controller")
+    local manageSpace = tResourceManager:checkSetup()
     if slot then
         turtle.select(slot)
         turtle.equipLeft()
@@ -127,7 +143,7 @@ function miningLib:main(points)
         movedfromStart.y = movedfromStart.y + w.y
         movedfromStart.z = movedfromStart.z + w.z
         self:goToPoint(w)
-        self:mineArea()
+        self:mineArea(manageSpace)
     end
     
     local path = scanner.createPath({ movedfromStart })
