@@ -67,6 +67,7 @@ local function filterFunc(item)
     keepItem = string.find(item.name, "coal") ~= nil or keepItem
     keepItem = string.find(item.name, "geo_scanner") ~= nil or keepItem
     keepItem = string.find(item.name, "pickaxe") ~= nil or keepItem
+    keepItem = string.find(item.name, "chunk_controller") or keepItem
     return not keepItem
 end
 
